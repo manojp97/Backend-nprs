@@ -29,7 +29,7 @@ export const uploadImage = async (req, res) => {
         headers: {
           apikey: "AvGPZAFnvQNOApa7zRncCz",
         },
-      }
+      },
     );
 
     console.log("📄 OCR RESPONSE:", response.data);
@@ -55,13 +55,23 @@ export const uploadImage = async (req, res) => {
     });
 
     res.status(200).json({ plate });
-
   } catch (err) {
     console.error("🔥 FULL ERROR:", err);
 
     res.status(500).json({
       message: "Server error",
-      error: err.message
+      error: err.message,
     });
+  }
+};
+export const getHistory = async (req, res) => {
+  try {
+    const data = await History.find({ userId: req.user.id }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch history" });
   }
 };
