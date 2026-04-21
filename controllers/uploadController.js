@@ -2,14 +2,20 @@ import axios from "axios";
 import fs from "fs";
 import History from "../models/History.js";
 
-// ✅ UPLOAD IMAGE
 export const uploadImage = async (req, res) => {
   try {
+    console.log("➡️ Upload API called");
+
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const filePath = req.file.path;
+    console.log("📁 FILE PATH:", filePath);
 
     const image = fs.readFileSync(filePath, { encoding: "base64" });
 
@@ -26,7 +32,8 @@ export const uploadImage = async (req, res) => {
       }
     );
 
-    // ✅ SAFE CHECK
+    console.log("📄 OCR RESPONSE:", response.data);
+
     if (
       !response.data ||
       !response.data.ParsedResults ||
@@ -38,9 +45,7 @@ export const uploadImage = async (req, res) => {
     }
 
     const text = response.data.ParsedResults[0].ParsedText || "";
-
     const cleanText = text.replace(/[^A-Z0-9]/gi, "");
-
     const plate = cleanText || "NOT DETECTED";
 
     await History.create({
@@ -57,24 +62,6 @@ export const uploadImage = async (req, res) => {
     res.status(500).json({
       message: "Server error",
       error: err.message
-    });
-  }
-};
-
-
-// ✅ GET HISTORY (IMPORTANT 🔥)
-export const getHistory = async (req, res) => {
-  try {
-    const data = await History.find({ userId: req.user.id })
-      .sort({ createdAt: -1 });
-
-    res.status(200).json(data);
-
-  } catch (err) {
-    console.error("History Error:", err);
-
-    res.status(500).json({
-      message: "Failed to fetch history",
     });
   }
 };
