@@ -1,25 +1,25 @@
-import axios from "axios";
-import fs from "fs";
-import FormData from "form-data";
+// import axios from "axios";
+// import fs from "fs";
+// import FormData from "form-data";
 
-export const sendToPython = async (filePath) => {
-  try {
-    const formData = new FormData();
+// export const sendToPython = async (filePath) => {
+//   try {
+//     const formData = new FormData();
 
-    formData.append("image", fs.createReadStream(filePath));
+//     formData.append("image", fs.createReadStream(filePath));
 
-    const response = await axios.post(
-      "https://python-service-jefs.onrender.com/ocr",
-      formData,
-      {
-        headers: formData.getHeaders(),
-      }
-    );
+//     const response = await axios.post(
+//       "https://python-service-jefs.onrender.com/ocr",
+//       formData,
+//       {
+//         headers: formData.getHeaders(),
+//       }
+//     );
 
-    return response.data;
+//     return response.data;
 
-  } catch (error) {
-    console.error("Python API Error:", error.message);
-    return { plate_number: "ERROR" };
-  }
-};
+//   } catch (error) {
+//     console.error("Python API Error:", error.message);
+//     return { plate_number: "ERROR" };
+//   }
+// };

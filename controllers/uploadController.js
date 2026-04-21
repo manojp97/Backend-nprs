@@ -1,4 +1,5 @@
-import { sendToPython } from "../services/pythonService.js";
+import axios from "axios";
+import fs from "fs";
 import History from "../models/History.js";
 
 export const uploadImage = async (req, res) => {
@@ -10,16 +11,30 @@ export const uploadImage = async (req, res) => {
 
     const filePath = req.file.path;
 
-    // ✅ python call
-    const result = await sendToPython(filePath);
+    // 🔥 image ko base64 me convert
+    const image = fs.readFileSync(filePath, { encoding: "base64" });
 
-    if (!result || !result.plate_number) {
-      return res.status(500).json({
-        message: "OCR failed",
-      });
-    }
+    // 🔥 OCR API call
+    const response = await axios.post(
+      "https://api.ocr.space/parse/image",
+      {
+        base64Image: `data:image/jpeg;base64,${image}`,
+        language: "eng",
+      },
+      {
+        headers: {
+          apikey: "AvGPZAFnvQNOApa7zRncCz", // free key
+        },
+      }
+    );
 
-    const plate = result.plate_number || "NOT DETECTED";
+    // 🔥 text extract
+    const text = response.data.ParsedResults?.[0]?.ParsedText || "";
+
+    // 🔥 clean plate number
+    const cleanText = text.replace(/[^A-Z0-9]/gi, "");
+
+    const plate = cleanText || "NOT DETECTED";
 
     // ✅ save history
     await History.create({
@@ -34,7 +49,7 @@ export const uploadImage = async (req, res) => {
     console.error("Upload Error:", err.message);
 
     res.status(500).json({
-      message: "Server error during upload",
+      message: "OCR failed",
     });
   }
 };
