@@ -2,6 +2,7 @@ import axios from "axios";
 import fs from "fs";
 import History from "../models/History.js";
 
+// ✅ UPLOAD IMAGE
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -56,6 +57,24 @@ export const uploadImage = async (req, res) => {
     res.status(500).json({
       message: "Server error",
       error: err.message
+    });
+  }
+};
+
+
+// ✅ GET HISTORY (IMPORTANT 🔥)
+export const getHistory = async (req, res) => {
+  try {
+    const data = await History.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(data);
+
+  } catch (err) {
+    console.error("History Error:", err);
+
+    res.status(500).json({
+      message: "Failed to fetch history",
     });
   }
 };
