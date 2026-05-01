@@ -13,7 +13,7 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 const app = express();
 
-// Middleware
+// CORS FIX (Production Safe)
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -21,29 +21,25 @@ app.use(cors({
   ],
   credentials: true
 }));
-app.use(express.json());
 
-// Static Folder
+app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
+// MongoDB
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .catch(err => console.log(err));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", uploadRoutes);
 
-// Test Route
 app.get("/", (req, res) => {
   res.send("Backend Running...");
 });
 
-// Server Start
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server Started On Port ${PORT}`);
+  console.log("Server Started On Port", PORT);
 });

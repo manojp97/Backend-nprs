@@ -3,18 +3,11 @@ import fs from "fs";
 import FormData from "form-data";
 import History from "../models/History.js";
 
+// FIXED Plate Recognizer API
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({
-        message: "No image uploaded",
-      });
-    }
-
-    if (!req.user) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(400).json({ message: "No image uploaded" });
     }
 
     const filePath = req.file.path;
@@ -33,15 +26,13 @@ export const uploadImage = async (req, res) => {
       }
     );
 
-    const result = response.data.results[0];
+    const results = response.data.results;
 
-    if (!result) {
-      return res.status(200).json({
-        message: "No Plate Found",
-      });
+    if (!results || results.length === 0) {
+      return res.json({ plate: "NOT DETECTED" });
     }
 
-    const plate = result.plate.toUpperCase();
+    const plate = results[0].plate.toUpperCase();
 
     await History.create({
       userId: req.user.id,
@@ -49,13 +40,13 @@ export const uploadImage = async (req, res) => {
       plateNumber: plate,
     });
 
-    res.status(200).json({
+    res.json({
       plate,
-      confidence: result.score,
-      vehicle: result.vehicle,
+      confidence: results[0].score,
     });
+
   } catch (err) {
-    console.log(err.response?.data || err.message);
+    console.log("ERROR:", err.response?.data || err.message);
 
     res.status(500).json({
       message: "Recognition Failed",
@@ -63,16 +54,14 @@ export const uploadImage = async (req, res) => {
   }
 };
 
+// HISTORY
 export const getHistory = async (req, res) => {
   try {
-    const data = await History.find({
-      userId: req.user.id,
-    }).sort({ createdAt: -1 });
+    const data = await History.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
 
-    res.status(200).json(data);
+    res.json(data);
   } catch (err) {
-    res.status(500).json({
-      message: "Failed to fetch history",
-    });
+    res.status(500).json({ message: "Failed to fetch history" });
   }
 };
