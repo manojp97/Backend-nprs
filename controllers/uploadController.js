@@ -1,13 +1,17 @@
+// controllers/uploadController.js
+
 import axios from "axios";
 import fs from "fs";
 import FormData from "form-data";
 import History from "../models/History.js";
 
-// FIXED Plate Recognizer API
+// Upload Image
 export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No image uploaded" });
+      return res.status(400).json({
+        message: "No image uploaded",
+      });
     }
 
     const filePath = req.file.path;
@@ -29,7 +33,9 @@ export const uploadImage = async (req, res) => {
     const results = response.data.results;
 
     if (!results || results.length === 0) {
-      return res.json({ plate: "NOT DETECTED" });
+      return res.json({
+        plate: "NOT DETECTED",
+      });
     }
 
     const plate = results[0].plate.toUpperCase();
@@ -54,14 +60,44 @@ export const uploadImage = async (req, res) => {
   }
 };
 
-// HISTORY
+// Get History
 export const getHistory = async (req, res) => {
   try {
-    const data = await History.find({ userId: req.user.id })
-      .sort({ createdAt: -1 });
+    const data = await History.find({
+      userId: req.user.id,
+    }).sort({ createdAt: -1 });
 
     res.json(data);
+
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch history" });
+    res.status(500).json({
+      message: "Failed to fetch history",
+    });
+  }
+};
+
+// Delete History
+export const deleteHistory = async (req, res) => {
+  try {
+    const item = await History.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({
+        message: "History not found",
+      });
+    }
+
+    await History.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "Deleted Successfully",
+    });
+
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      message: "Delete Failed",
+    });
   }
 };
